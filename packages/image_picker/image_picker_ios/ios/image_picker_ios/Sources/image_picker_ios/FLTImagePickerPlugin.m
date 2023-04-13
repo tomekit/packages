@@ -253,6 +253,10 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   UIImagePickerController *imagePickerController = [self createImagePickerController];
   imagePickerController.modalPresentationStyle = UIModalPresentationCurrentContext;
   imagePickerController.delegate = self;
+
+  // https://github.com/flutter/flutter/issues/24954#issuecomment-1484318717
+  // imagePickerController.mediaTypes = @[(NSString *)kUTTypeMovie];
+
   imagePickerController.mediaTypes = @[
     (NSString *)kUTTypeMovie, (NSString *)kUTTypeAVIMovie, (NSString *)kUTTypeVideo,
     (NSString *)kUTTypeMPEG4
@@ -263,6 +267,9 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     NSTimeInterval max = [maxDurationSeconds doubleValue];
     imagePickerController.videoMaximumDuration = max;
   }
+
+  // https://github.com/flutter/flutter/issues/24954#issuecomment-1371218434
+  imagePickerController.videoExportPreset = AVAssetExportPresetPassthrough;
 
   self.callContext = context;
 
