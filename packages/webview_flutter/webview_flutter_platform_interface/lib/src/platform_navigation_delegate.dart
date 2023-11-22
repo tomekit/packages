@@ -6,8 +6,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'types/types.dart';
 
-import 'webview_platform.dart';
+import 'webview_platform.dart' show WebViewPlatform;
 
 /// Signature for callbacks that report a pending navigation request.
 typedef NavigationRequestCallback = FutureOr<NavigationDecision> Function(
@@ -28,6 +29,10 @@ typedef WebResourceErrorCallback = void Function(WebResourceError error);
 /// Signature for callbacks that notify the host application of a change to the
 /// url of the web view.
 typedef UrlChangeCallback = void Function(UrlChange change);
+
+/// Signature for callbacks that notify the host application of an
+/// authentication request.
+typedef HttpAuthRequestCallback = void Function(HttpAuthRequest request);
 
 /// An interface defining navigation events that occur on the native platform.
 ///
@@ -129,6 +134,13 @@ abstract class PlatformNavigationDelegate extends PlatformInterface {
   Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) {
     throw UnimplementedError(
       'setOnUrlChange is not implemented on the current platform.',
+    );
+  }
+
+  /// Invoked when the web view is requesting authentication.
+  Future<void> setOnHttpAuthRequest(HttpAuthRequestCallback onHttpAuthRequest) {
+    throw UnimplementedError(
+      'setOnHttpAuthRequest is not implemented on the current platform.',
     );
   }
 }

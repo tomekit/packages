@@ -43,18 +43,50 @@
                                                       }];
   }
 
-  NSNumber *configurationIdentifier =
-      @([self.instanceManager identifierWithStrongReferenceForInstance:configuration]);
+  NSInteger configurationIdentifier =
+      [self.instanceManager identifierWithStrongReferenceForInstance:configuration];
   FWFWKNavigationActionData *navigationActionData =
-      FWFWKNavigationActionDataFromNavigationAction(navigationAction);
+      FWFWKNavigationActionDataFromNativeWKNavigationAction(navigationAction);
 
-  [self onCreateWebViewForDelegateWithIdentifier:@([self identifierForDelegate:instance])
-                               webViewIdentifier:
-                                   @([self.instanceManager
-                                       identifierWithStrongReferenceForInstance:webView])
-                         configurationIdentifier:configurationIdentifier
-                                navigationAction:navigationActionData
-                                      completion:completion];
+  [self
+      onCreateWebViewForDelegateWithIdentifier:[self identifierForDelegate:instance]
+                             webViewIdentifier:[self.instanceManager
+                                                   identifierWithStrongReferenceForInstance:webView]
+                       configurationIdentifier:configurationIdentifier
+                              navigationAction:navigationActionData
+                                    completion:completion];
+}
+
+- (void)requestMediaCapturePermissionForDelegateWithIdentifier:(FWFUIDelegate *)instance
+                                                       webView:(WKWebView *)webView
+                                                        origin:(WKSecurityOrigin *)origin
+                                                         frame:(WKFrameInfo *)frame
+                                                          type:(WKMediaCaptureType)type
+                                                    completion:
+                                                        (void (^)(WKPermissionDecision))completion
+    API_AVAILABLE(ios(15.0)) {
+  [self
+      requestMediaCapturePermissionForDelegateWithIdentifier:[self identifierForDelegate:instance]
+                                           webViewIdentifier:
+                                               [self.instanceManager
+                                                   identifierWithStrongReferenceForInstance:webView]
+                                                      origin:
+                                                          FWFWKSecurityOriginDataFromNativeWKSecurityOrigin(
+                                                              origin)
+                                                       frame:
+                                                           FWFWKFrameInfoDataFromNativeWKFrameInfo(
+                                                               frame)
+                                                        type:
+                                                            FWFWKMediaCaptureTypeDataFromNativeWKMediaCaptureType(
+                                                                type)
+                                                  completion:^(
+                                                      FWFWKPermissionDecisionData *decision,
+                                                      FlutterError *error) {
+                                                    NSAssert(!error, @"%@", error);
+                                                    completion(
+                                                        FWFNativeWKPermissionDecisionFromData(
+                                                            decision));
+                                                  }];
 }
 @end
 
@@ -82,6 +114,23 @@
                                       }];
   return nil;
 }
+
+- (void)webView:(WKWebView *)webView
+    requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin
+                          initiatedByFrame:(WKFrameInfo *)frame
+                                      type:(WKMediaCaptureType)type
+                           decisionHandler:(void (^)(WKPermissionDecision))decisionHandler
+    API_AVAILABLE(ios(15.0)) {
+  [self.UIDelegateAPI
+      requestMediaCapturePermissionForDelegateWithIdentifier:self
+                                                     webView:webView
+                                                      origin:origin
+                                                       frame:frame
+                                                        type:type
+                                                  completion:^(WKPermissionDecision decision) {
+                                                    decisionHandler(decision);
+                                                  }];
+}
 @end
 
 @interface FWFUIDelegateHostApiImpl ()
@@ -107,10 +156,9 @@
   return (FWFUIDelegate *)[self.instanceManager instanceForIdentifier:identifier.longValue];
 }
 
-- (void)createWithIdentifier:(nonnull NSNumber *)identifier
-                       error:(FlutterError *_Nullable *_Nonnull)error {
+- (void)createWithIdentifier:(NSInteger)identifier error:(FlutterError *_Nullable *_Nonnull)error {
   FWFUIDelegate *uIDelegate = [[FWFUIDelegate alloc] initWithBinaryMessenger:self.binaryMessenger
                                                              instanceManager:self.instanceManager];
-  [self.instanceManager addDartCreatedInstance:uIDelegate withIdentifier:identifier.longValue];
+  [self.instanceManager addDartCreatedInstance:uIDelegate withIdentifier:identifier];
 }
 @end
